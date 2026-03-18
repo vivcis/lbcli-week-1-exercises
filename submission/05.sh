@@ -3,15 +3,15 @@
 #!/bin/bash
 #bitcoin-cli -regtest getbalance
 
-bitcoin-cli -regtest createwallet "testwalletbalance"
+bitcoin-cli -regtest createwallet "testwalletbalance" 2>/dev/null
 
 # Generate an address in the wallet
-ADDRESS=$(bitcoin-cli -regtest -rpcwallet=testwalletbalance getnewaddress)
+ADDRESS=$(bitcoin-cli -regtest -rpcwallet=testwalletbalance getnewaddress 2>/dev/null)
 
-# Mine 101 blocks to fund the wallet (first 100 are unspendable, 101st is spendable)
-bitcoin-cli -regtest generatetoaddress 101 $ADDRESS
+# Mine blocks to the address
+bitcoin-cli -regtest generatetoaddress 101 "$ADDRESS" 2>/dev/null
 
-# Check the balance
-BALANCE=$(bitcoin-cli -regtest -rpcwallet=testwalletbalance getbalance)
+# Get balance and echo it
+BALANCE=$(bitcoin-cli -regtest -rpcwallet=testwalletbalance getbalance 2>/dev/null)
 
-echo $BALANCE
+echo "$BALANCE"

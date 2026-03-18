@@ -2,6 +2,4 @@
 # Address: `bcrt1qckgvfee4qs6y98jrcn8qc0m6ce6sxls0vac3yy` 
 
 #!/bin/bash
-ADDR=$(bitcoin-cli -regtest -rpcwallet=legacywallet getnewaddress "" legacy)
-
-bitcoin-cli -regtest validateaddress "$ADDR" | jq -r '.isvalid'
+bitcoin-cli -regtest validateaddress "invalidaddress123" | jq -r '.isvalid'

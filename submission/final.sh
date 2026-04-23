@@ -173,28 +173,55 @@ NEW_TAPROOT_ADDR=$(trim "$NEW_TAPROOT_ADDR")
 ADDR_INFO=$(bitcoin-cli -regtest -rpcwallet=btrustwallet getaddressinfo "$NEW_TAPROOT_ADDR")
 check_cmd "Getting address info"
 
-# STUDENT TASK: Extract descriptor
+# STUDENT TASK: Extract the internal key (the x-only pubkey) from the descriptor
+# WRITE YOUR SOLUTION BELOW:
+INTERNAL_KEY=$(echo "$ADDR_INFO" | jq -r '.pubkey')
+check_cmd "Extracting key from descriptor"
+INTERNAL_KEY=$(trim "$INTERNAL_KEY")
+
+# STUDENT TASK: Create a proper descriptor with just the key
+# WRITE YOUR SOLUTION BELOW:
+echo "Using internal key: $INTERNAL_KEY"
+SIMPLE_DESCRIPTOR="tr($INTERNAL_KEY)"
+echo "Simple descriptor: $SIMPLE_DESCRIPTOR"
+
+# STUDENT TASK: Get a proper descriptor with checksum
 # WRITE YOUR SOLUTION BELOW:
 TAPROOT_DESCRIPTOR=$(echo "$ADDR_INFO" | jq -r '.desc')
 check_cmd "Descriptor extraction"
 TAPROOT_DESCRIPTOR=$(trim "$TAPROOT_DESCRIPTOR")
 echo "Taproot treasure map: $TAPROOT_DESCRIPTOR"
 
-# Verify addresses match (simplified - just compare the original address with itself)
-DERIVED_ADDR="$NEW_TAPROOT_ADDR"
+# STUDENT TASK: Derive an address from the descriptor
+# WRITE YOUR SOLUTION BELOW:
+DERIVED_ADDR_RAW=$(bitcoin-cli -regtest deriveaddresses "$TAPROOT_DESCRIPTOR" | jq -r '.[0]')
+check_cmd "Address derivation"
+DERIVED_ADDR=$(echo "$DERIVED_ADDR_RAW" | tr -d '[]" \n\t')
 echo "Derived quantum vault address: $DERIVED_ADDR"
 
 # Verify the addresses match
 echo "New taproot address: $NEW_TAPROOT_ADDR"
 echo "Derived address:     $DERIVED_ADDR"
 
+# Debug output to help diagnose any issues
+echo "Address lengths: ${#NEW_TAPROOT_ADDR} vs ${#DERIVED_ADDR}"
+echo "Address comparison (base64 encoded to see any hidden characters):"
+echo "New:     $(echo -n "$NEW_TAPROOT_ADDR" | base64)"
+echo "Derived: $(echo -n "$DERIVED_ADDR" | base64)"
+
 if [[ "$NEW_TAPROOT_ADDR" == "$DERIVED_ADDR" ]]; then
   echo "Addresses match! The final treasure is yours!"
+  
+  # For educational purposes, show both addresses from the challenge
   echo ""
   echo "Note: In Bitcoin Core v28, the original taproot address used in the challenge was:"
   echo "Original address: $TAPROOT_ADDR"
+  echo "This wasn't used in our final verification to ensure consistency with v28."
 else
-  echo "ERROR: Address mismatch!"
+  echo "ERROR: Address mismatch detected! The derived address does not match the taproot address."
+  echo "This indicates an issue with the descriptor derivation process."
+  echo "New taproot address: $NEW_TAPROOT_ADDR"
+  echo "Derived address:     $DERIVED_ADDR"
   exit 1
 fi
 
@@ -213,4 +240,4 @@ echo "- Validate addresses"
 echo "- Work with message signatures"
 echo "- Use Bitcoin descriptors"
 echo ""
-echo "NOTE: This script is specifically designed to work with Bitcoin Core v28." 
+echo "NOTE: This script is specifically designed to work with Bitcoin Core v28."

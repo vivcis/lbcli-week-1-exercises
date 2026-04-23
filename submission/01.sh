@@ -2,4 +2,4 @@
 
 #!/bin/bash
 
-bitcoin-cli --version
+bitcoin-cli -regtest --version
